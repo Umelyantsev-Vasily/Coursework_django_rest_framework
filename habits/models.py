@@ -3,7 +3,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 
 
-class Hobit(models.Model):
+class Habit(models.Model):
     PERIODICITY_CHOICES = [
         (1, 'Ежедневно'),
         (2, 'Раз в два дня'),
@@ -19,12 +19,14 @@ class Hobit(models.Model):
     time = models.TimeField(verbose_name='Время')
     action = models.CharField(max_length=255, verbose_name='Действие')
     is_pleasant = models.BooleanField(default=False, verbose_name='Признак приятной привычки')
-    related_hobit = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Связанная привычка')
+    related_habit = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True,
+                                      verbose_name='Связанная привычка')  # Исправлено на related_habit
     periodicity = models.PositiveSmallIntegerField(choices=PERIODICITY_CHOICES, default=1, verbose_name='Периодичность')
     reward = models.CharField(max_length=255, blank=True, null=True, verbose_name='Вознаграждение')
     duration = models.PositiveSmallIntegerField(verbose_name='Время на выполнение (в секундах)')
     is_public = models.BooleanField(default=False, verbose_name='Признак публичности')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
+    last_completed = models.DateTimeField(null=True, blank=True, verbose_name='Последнее выполнение')
 
     class Meta:
         verbose_name = 'Привычка'
@@ -48,8 +50,11 @@ class Hobit(models.Model):
             raise ValidationError('В связанные привычки могут попадать только приятные привычки.')
 
         # Валидация 4: У приятной привычки не может быть вознаграждения или связанной привычки
-        if self.is_pleasant and (self.reward or self.related_habit):
-            raise ValidationError('У приятной привычки не может быть вознаграждения или связанной привычки.')
+        if self.is_pleasant:
+            if self.reward:
+                raise ValidationError('У приятной привычки не может быть вознаграждения.')
+            if self.related_habit:
+                raise ValidationError('У приятной привычки не может быть связанной привычки.')
 
         # Валидация 5: Периодичность не реже чем 1 раз в 7 дней
         if self.periodicity > 7:

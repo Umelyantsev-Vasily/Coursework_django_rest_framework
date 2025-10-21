@@ -3,7 +3,7 @@ from django.contrib.auth.models import AbstractUser
 
 
 class User(AbstractUser):
-    telegram_chat_id  = models.CharField(max_length=50, blank=True, null=True, verbose_name='Telegram Chat ID')
+    telegram_chat_id = models.CharField(max_length=50, blank=True, null=True, verbose_name='Telegram Chat ID')
 
     class Meta:
         verbose_name = 'Пользователь'
