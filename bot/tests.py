@@ -76,7 +76,6 @@ class TelegramTasksTest(TestCase):
     def test_check_due_habits(self, mock_reminder):
         """Тест проверки привычек для выполнения"""
         from django.utils import timezone
-        import datetime
 
         # Создаем привычку с текущим временем
         now = timezone.now()
