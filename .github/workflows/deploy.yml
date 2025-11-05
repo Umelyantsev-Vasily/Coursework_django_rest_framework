@@ -2,7 +2,7 @@ name: Deploy to Yandex Cloud
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ develop ]
 
 jobs:
   test:
@@ -28,7 +28,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: test
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    if: github.ref == 'refs/heads/develop'
 
     steps:
     - uses: actions/checkout@v4
@@ -41,7 +41,7 @@ jobs:
         key: ${{ secrets.SERVER_SSH_KEY }}
         script: |
           cd /home/vas/Coursework_django_rest_framework
-          git pull origin main
+          git pull origin develop
           source venv/bin/activate
           pip install -r requirements.txt
           python manage.py migrate
