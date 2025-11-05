@@ -69,6 +69,24 @@ python -m coverage run --source='.' manage.py test
 python -m coverage report
 ```
 ---
+## Деплой на сервер
+
+### Требования
+- Ubuntu 22.04
+- Python 3.12
+- PostgreSQL
+- Redis
+- Nginx
+
+### Настройка
+1. Клонировать репозиторий
+2. Создать виртуальное окружение
+3. Установить зависимости: `pip install -r requirements.txt`
+4. Настроить .env файл из .env.example
+5. Выполнить миграции: `python manage.py migrate`
+6. Собрать статику: `python manage.py collectstatic`
+7. Настроить Gunicorn и Nginx
+
 ## Лицензия:
 
 Проект распространяется под [лицензией MIT](LICENSE)
