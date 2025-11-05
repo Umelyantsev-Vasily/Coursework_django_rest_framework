@@ -1,9 +1,10 @@
 [tool.poetry]
 name = "coursework-django-rest-framework"
 version = "0.1.0"
-description = "Django REST API для трекера полезных привычек"
-authors = ["Василий <tanec_991@mail.ru>"]
-readme = "README.md"
+description = "Django REST Framework Habit Tracker"
+authors = ["Vasily Umelyantsev <tanec_991@mail.ru>"]
+package-mode = false
+
 
 [tool.poetry.dependencies]
 python = "^3.12"
