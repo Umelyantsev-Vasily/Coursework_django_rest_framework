@@ -46,11 +46,21 @@ jobs:
           script: |
             cd /home/vas/Coursework_django_rest_framework
             git pull origin develop
-            source venv/bin/activate
-            pip install poetry
-            poetry install --no-root
-            poetry run python manage.py migrate
-            poetry run python manage.py collectstatic --noinput
+            
+            # Устанавливаем Poetry если не установлен
+            if ! command -v poetry &> /dev/null; then
+                pip install poetry
+            fi
+            
+            # Устанавливаем зависимости без создания виртуального окружения
+            poetry config virtualenvs.create false
+            poetry install --no-dev --no-root
+            
+            # Применяем миграции и собираем статику
+            python manage.py migrate
+            python manage.py collectstatic --noinput
+            
+            # Перезапускаем сервисы
             sudo systemctl restart gunicorn
             sudo systemctl restart nginx
             echo "Deployment completed successfully!"
