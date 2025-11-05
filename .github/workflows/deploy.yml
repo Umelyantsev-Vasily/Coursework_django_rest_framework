@@ -15,14 +15,18 @@ jobs:
       with:
         python-version: '3.12'
 
-    - name: Install dependencies
+    - name: Install Poetry
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        pip install poetry
+
+    - name: Install dependencies
+      run: |
+        poetry install --no-root
 
     - name: Run tests
       run: |
-        python manage.py test
+        poetry run python manage.py test
 
   deploy:
     runs-on: ubuntu-latest
@@ -41,9 +45,10 @@ jobs:
           cd /home/vas/Coursework_django_rest_framework
           git pull origin develop
           source venv/bin/activate
-          pip install -r requirements.txt
-          python manage.py migrate
-          python manage.py collectstatic --noinput
+          pip install poetry
+          poetry install --no-root
+          poetry run python manage.py migrate
+          poetry run python manage.py collectstatic --noinput
           sudo systemctl restart gunicorn
           sudo systemctl restart nginx
           echo "Deployment completed successfully!"
