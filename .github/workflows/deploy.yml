@@ -26,7 +26,7 @@ jobs:
 
       - name: Run tests
         env:
-          GITHUB_ACTIONS: 'true'  # Это активирует SQLite режим
+          GITHUB_ACTIONS: 'true'
         run: |
           poetry run python manage.py test
 
@@ -45,22 +45,22 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             cd /home/vas/Coursework_django_rest_framework
+            
+            # АКТИВИРУЕМ виртуальное окружение
+            source venv/bin/activate
+            
+            # Обновляем код
             git pull origin develop
-            
-            # Устанавливаем Poetry если не установлен
-            if ! command -v poetry &> /dev/null; then
-                pip install poetry
-            fi
-            
-            # Устанавливаем зависимости без создания виртуального окружения
-            poetry config virtualenvs.create false
-            poetry install --no-dev --no-root
-            
-            # Применяем миграции и собираем статику
-            python manage.py migrate
-            python manage.py collectstatic --noinput
-            
+
+            # Используем Python и Poetry из venv
+            /home/vas/Coursework_django_rest_framework/venv/bin/poetry install --no-dev --no-root
+
+            # Применяем миграции и собираем статику через venv
+            /home/vas/Coursework_django_rest_framework/venv/bin/python manage.py migrate
+            /home/vas/Coursework_django_rest_framework/venv/bin/python manage.py collectstatic --noinput
+
             # Перезапускаем сервисы
             sudo systemctl restart gunicorn
-            sudo systemctl restart nginx
-            echo "Deployment completed successfully!"
+            sudo systemctl reload nginx
+            
+            echo "🚀 Deployment completed successfully!"
