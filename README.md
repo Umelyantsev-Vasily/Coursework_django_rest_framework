@@ -93,3 +93,20 @@ python -m coverage report
 
 ## 👨‍💻 Разработчик
  ### Василий - tanec_991@mail.ru
+
+## 🚀 Deployment Status
+
+### Production Environment
+- ✅ **GitHub Actions CI/CD** - Configured and working
+- ✅ **SSH Authentication** - Set up for deployment
+- ✅ **Python 3.12 + Django 5.2.7** - Installed and running
+- ✅ **Gunicorn** - Service active with 3 workers
+- ✅ **Nginx** - Service active and configured
+- ✅ **Database Migrations** - Applied successfully
+- ✅ **Static Files** - Collected and served
+- ✅ **All Services** - Operational and monitoring
+
+### Deployment Pipeline
+- Automatic tests on push to  branch
+- Automated deployment to production after successful tests
+- Zero-downtime deployments with service restarts
