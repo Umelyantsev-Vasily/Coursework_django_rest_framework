@@ -176,3 +176,10 @@ docker-compose exec web python manage.py collectstatic --noinput
 # Создание суперпользователя
 docker-compose exec web python manage.py createsuperuser
 ```
+---
+## Лицензия:
+
+Проект распространяется под [лицензией MIT](LICENSE)
+
+## 👨‍💻 Разработчик
+ ### Василий - tanec_991@mail.ru
