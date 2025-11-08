@@ -1,0 +1,66 @@
+name: Deploy to Yandex Cloud
+
+on:
+  push:
+    branches: [ develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install Poetry
+        run: |
+          python -m pip install --upgrade pip
+          pip install poetry
+
+      - name: Install dependencies
+        run: |
+          poetry install --no-root
+
+      - name: Run tests
+        env:
+          GITHUB_ACTIONS: 'true'
+        run: |
+          poetry run python manage.py test
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            cd /home/vas/Coursework_django_rest_framework
+            
+            # АКТИВИРУЕМ виртуальное окружение
+            source venv/bin/activate
+            
+            # Обновляем код
+            git pull origin develop
+
+            # Используем Python и Poetry из venv
+            /home/vas/Coursework_django_rest_framework/venv/bin/poetry install --no-dev --no-root
+
+            # Применяем миграции и собираем статику через venv
+            /home/vas/Coursework_django_rest_framework/venv/bin/python manage.py migrate
+            /home/vas/Coursework_django_rest_framework/venv/bin/python manage.py collectstatic --noinput
+
+            # Перезапускаем сервисы
+            sudo systemctl restart gunicorn
+            sudo systemctl reload nginx
+            
+            echo "🚀 Deployment completed successfully!"
