@@ -110,3 +110,69 @@ python -m coverage report
 - Automatic tests on push to  branch
 - Automated deployment to production after successful tests
 - Zero-downtime deployments with service restarts
+- 
+---
+
+## 🌐 Работающее приложение
+
+Приложение развернуто и доступно по адресу:  
+**http://158.160.68.20/**
+
+- Swagger документация: http://158.160.68.20/swagger/
+- ReDoc документация: http://158.160.68.20/redoc/
+- Админ панель: http://158.160.68.20/admin/
+
+## 🔄 CI/CD Настройка
+
+### GitHub Actions
+Проект использует GitHub Actions для автоматического тестирования и деплоя.
+
+#### Workflow файл
+Расположение: `.github/workflows/docker-ci-cd.yml`
+
+#### Этапы:
+1. **Тестирование** - запускается при push и pull requests
+2. **Деплой** - автоматический деплой на сервер при push в develop ветку
+
+#### Настройка Secrets в GitHub:
+- `SERVER_HOST` - IP адрес сервера
+- `SERVER_USER` - пользователь сервера  
+- `SERVER_SSH_KEY` - приватный SSH ключ
+
+## 🚀 Деплой на сервер
+
+### Docker-версия (рекомендуется)
+
+#### 1. Подготовка сервера
+```bash
+# Обновление системы
+sudo apt update && sudo apt upgrade -y
+
+# Установка Docker и Docker Compose
+sudo apt install docker.io docker-compose -y
+
+# Добавление пользователя в группу docker
+sudo usermod -aG docker $USER
+```
+
+```bash
+# Клонирование репозитория
+git clone <your-repository-url>
+cd coursework_django_rest_framework
+
+# Настройка окружения
+cp .env.example .env
+# Отредактируйте .env файл
+
+# Запуск контейнеров
+docker-compose up -d --build
+
+# Выполнение миграций
+docker-compose exec web python manage.py migrate
+
+# Сбор статики
+docker-compose exec web python manage.py collectstatic --noinput
+
+# Создание суперпользователя
+docker-compose exec web python manage.py createsuperuser
+```
