@@ -11,13 +11,19 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('SECRET_KEY')
+if not SECRET_KEY:
+    if os.getenv('DEBUG', 'False').lower() == 'true':
+        SECRET_KEY = 'django-insecure-dev-key-for-docker-build-12345'
+    else:
+        SECRET_KEY = 'django-insecure-production-fallback-key-change-in-production'
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', False) == 'True'
+DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
+ALLOWED_HOSTS_STR = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,web,0.0.0.0')
+ALLOWED_HOSTS = [host.strip() for host in ALLOWED_HOSTS_STR.split(',') if host.strip()]
+
+
 
 # Application definition
 
@@ -75,7 +81,6 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# Используем SQLite для тестов в CI, PostgreSQL для продакшена
 if 'test' in sys.argv or os.getenv('GITHUB_ACTIONS') == 'true':
     DATABASES = {
         'default': {
@@ -83,25 +88,22 @@ if 'test' in sys.argv or os.getenv('GITHUB_ACTIONS') == 'true':
             'NAME': ':memory:',
         }
     }
-    # Для тестов также устанавливаем тестовые значения
     if not SECRET_KEY:
         SECRET_KEY = 'test-secret-key-for-ci-cd-12345'
-    if not ALLOWED_HOSTS or ALLOWED_HOSTS == ['']:
-        ALLOWED_HOSTS = ['localhost', '127.0.0.1']
     DEBUG = True
-    # Отключаем внешние сервисы в тестах
     CELERY_BROKER_URL = 'memory://'
     CELERY_RESULT_BACKEND = 'cache+memory://'
     TELEGRAM_BOT_TOKEN = 'test-token'
 else:
+    # ДЛЯ DOCKER - значения по умолчанию для контейнеров
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.getenv('POSTGRES_DB'),
-            'USER': os.getenv('POSTGRES_USER'),
-            'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
-            'HOST': os.getenv('POSTGRES_HOST'),
-            'PORT': os.getenv('POSTGRES_PORT'),
+            'NAME': os.getenv('POSTGRES_DB', 'postgres'),
+            'USER': os.getenv('POSTGRES_USER', 'postgres'),
+            'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'postgres'),
+            'HOST': os.getenv('POSTGRES_HOST', 'db'),  # 'db' - имя сервиса в docker-compose
+            'PORT': os.getenv('POSTGRES_PORT', '5432'),
         }
     }
 
@@ -138,6 +140,30 @@ STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# ⚠️ ВАЖНО: Добавляем безопасность для production
+if not DEBUG:
+    # Security settings
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+
+    # Для работы за прокси (Docker + Nginx)
+    USE_X_FORWARDED_HOST = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# ⚠️ ВАЖНО: Добавляем проверку SECRET_KEY для production
+if not DEBUG and not SECRET_KEY:
+    raise ValueError("SECRET_KEY must be set in production!")
+
+
 AUTH_USER_MODEL = 'users.User'
 
 # DRF
@@ -158,8 +184,8 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 # Celery
-CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'redis://localhost:6379/0')
-CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', 'redis://localhost:6379/0')
+CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'redis://redis:6379/0')  # 'redis' - имя сервиса
+CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', 'redis://redis:6379/0')
 CELERY_TIMEZONE = TIME_ZONE
 
 # Telegram
